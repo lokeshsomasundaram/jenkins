@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        WORKER_IP    = "172.31.6.55"
+        WORKER_USER  = "ubuntu"
+        DEPLOY_DIR   = "/home/ubuntu/deploy"
+        GIT_CRED     = "github-pat"        // Jenkins GitHub PAT credential ID
+        SSH_CRED     = "worker-ssh-key"    // Jenkins SSH key credential ID
+        REPO_URL     = "https://github.com/lokeshsomasundaram/jenkins.git" 
+        REPO_BRANCH  = "main"
+    }
+
+    stages {
+
+        stage('Clone from GitHub') {
+            steps {
+                git branch: "${REPO_BRANCH}",
+                    url: "${REPO_URL}",
+                    credentialsId: "${GIT_CRED}"
+            }
+        }
+
+        stage('Prepare Deployment Folder on Worker') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
+                        rm -rf ${DEPLOY_DIR} &&
+                        mkdir -p ${DEPLOY_DIR} &&
+                        sudo rm -rf /var/www/html/*
+                    '
+                    """
+                }
+            }
+        }
+
+        stage('Copy Website Files to Worker') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    # Replace ./ with the correct folder if website files are inside a subfolder
+                    scp -o StrictHostKeyChecking=no -r ./* ${WORKER_USER}@${WORKER_IP}:${DEPLOY_DIR}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Nginx') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
+                        sudo cp -r ${DEPLOY_DIR}/* /var/www/html/ &&
+                        sudo chown -R www-data:www-data /var/www/html &&
+                        sudo systemctl restart nginx &&
+                        rm -rf ${DEPLOY_DIR}
+                    '
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment Successful! Website is live."
+        }
+        failure {
+            echo "❌ Deployment Failed! Check logs."
+        }
+    }
+}
