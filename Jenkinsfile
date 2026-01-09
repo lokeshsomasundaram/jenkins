@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        WORKER_IP    = "172.31.6.55"
+        WORKER_IP    = "54.169.156.215"
         WORKER_USER  = "ubuntu"
         DEPLOY_DIR   = "/home/ubuntu/deploy"
-        GIT_CRED     = "github-pat"        // Jenkins GitHub PAT credential ID
-        SSH_CRED     = "worker-ssh-key"    // Jenkins SSH key credential ID
+        GIT_CRED     = "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"        // Jenkins GitHub PAT credential ID
+        SSH_CRED     = System.env("ec2kp")    // Jenkins SSH key credential ID
         REPO_URL     = "https://github.com/lokeshsomasundaram/jenkins.git" 
-        REPO_BRANCH  = "main"
+        REPO_BRANCH  = "master"
     }
 
     stages {
