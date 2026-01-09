@@ -6,7 +6,7 @@ pipeline {
         WORKER_USER  = "ubuntu"
         DEPLOY_DIR   = "/home/ubuntu/deploy"
         GIT_CRED     = "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"        // Jenkins GitHub PAT credential ID
-        
+        SSH_CRED     = System.env("SSHKEY")    // Jenkins SSH key credential ID
         REPO_URL     = "https://github.com/lokeshsomasundaram/jenkins.git" 
         REPO_BRANCH  = "master"
     }
@@ -18,10 +18,48 @@ pipeline {
                 git branch: "${REPO_BRANCH}",
                     url: "${REPO_URL}",
                     credentialsId: "${GIT_CRED}"
-                echo "hai"
             }
         }
 
+        stage('Prepare Deployment Folder on Worker') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
+                        rm -rf ${DEPLOY_DIR} &&
+                        mkdir -p ${DEPLOY_DIR} &&
+                        sudo rm -rf /var/www/html/*
+                    '
+                    """
+                }
+            }
+        }
+
+        stage('Copy Website Files to Worker') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    # Replace ./ with the correct folder if website files are inside a subfolder
+                    scp -o StrictHostKeyChecking=no -r ./* ${WORKER_USER}@${WORKER_IP}:${DEPLOY_DIR}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Nginx') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
+                        sudo cp -r ${DEPLOY_DIR}/* /var/www/html/ &&
+                        sudo chown -R www-data:www-data /var/www/html &&
+                        sudo systemctl restart nginx &&
+                        rm -rf ${DEPLOY_DIR}
+                    '
+                    """
+                }
+            }
+        }
     }
 
     post {
