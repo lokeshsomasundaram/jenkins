@@ -25,7 +25,6 @@ pipeline {
             steps {
                 sshagent(credentials: ["ubuntu"]) {
                     sh """
-                        ssh-keyscan -t rsa example.com >> ~/.ssh/known_hosts
                         ssh ${WORKER_USER}@${WORKER_IP} '
                         rm -rf ${DEPLOY_DIR} &&
                         mkdir -p ${DEPLOY_DIR} &&
