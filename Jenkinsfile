@@ -23,7 +23,7 @@ pipeline {
         
         stage('Prepare Deployment Folder on Worker') {
             steps {
-                sshagent(credentials: ["ubuntu"]) {
+                sshagent(credentials: ['ubuntu']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
                         rm -rf ${DEPLOY_DIR} &&
