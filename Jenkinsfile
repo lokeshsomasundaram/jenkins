@@ -6,7 +6,7 @@ pipeline {
         WORKER_USER  = "ubuntu"
         DEPLOY_DIR   = "/home/ubuntu/deploy"
         GIT_CRED     = "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"        // Jenkins GitHub PAT credential ID
-        SSH_CRED     = "ubuntu"    // Jenkins SSH key credential ID
+        SSH_CRED     = "17e5ad2f-7fe9-40f8-bb70-6d2da79ed879"    // Jenkins SSH key credential ID
         REPO_URL     = "https://github.com/lokeshsomasundaram/jenkins.git" 
         REPO_BRANCH  = "master"
     }
