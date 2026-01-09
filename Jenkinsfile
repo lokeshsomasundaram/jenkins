@@ -25,9 +25,7 @@ pipeline {
             steps {
                 sshagent(credentials: ["ubuntu"]) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP}
-                        
-                    
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP}                 
                     """
                 }
             }
