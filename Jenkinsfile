@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        WORKER_IP    = "54.169.156.215"
+        WORKER_IP    = "ec2-54-169-156-215.ap-southeast-1.compute.amazonaws.com"
         WORKER_USER  = "ubuntu"
         DEPLOY_DIR   = "/home/ubuntu/deploy"
         GIT_CRED     = "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"        // Jenkins GitHub PAT credential ID
@@ -23,12 +23,38 @@ pipeline {
         
         stage('Prepare Deployment Folder on Worker') {
             steps {
-                sshagent(credentials: ["${SSH_CRED}"]) {
+                sshagent(credentials: ["${env.SSHKEY}"]) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
                         rm -rf ${DEPLOY_DIR} &&
                         mkdir -p ${DEPLOY_DIR} &&
                         sudo rm -rf /var/www/html/*
+                    '
+                    """
+                }
+            }
+        }
+        
+        stage('Copy Website Files to Worker') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    # Replace ./ with the correct folder if website files are inside a subfolder
+                    scp -o StrictHostKeyChecking=no -r ./* ${WORKER_USER}@${WORKER_IP}:${DEPLOY_DIR}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Nginx') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
+                        sudo cp -r ${DEPLOY_DIR}/* /var/www/html/ &&
+                        sudo chown -R www-data:www-data /var/www/html &&
+                        sudo systemctl restart nginx &&
+                        rm -rf ${DEPLOY_DIR}
                     '
                     """
                 }
