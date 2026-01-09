@@ -26,7 +26,7 @@ pipeline {
                 sshagent(credentials: ["ubuntu"]) {
                     sh """
                         ssh-keyscan -t rsa example.com >> ~/.ssh/known_hosts
-                        ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} 'ls -lh'
+                        ssh -o ${WORKER_USER}@${WORKER_IP} 'ls -lh'
                     """
                 }
             }
