@@ -20,6 +20,20 @@ pipeline {
                     credentialsId: "${GIT_CRED}"
             }
         }
+        
+        stage('Prepare Deployment Folder on Worker') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
+                        rm -rf ${DEPLOY_DIR} &&
+                        mkdir -p ${DEPLOY_DIR} &&
+                        sudo rm -rf /var/www/html/*
+                    '
+                    """
+                }
+            }
+        }
 
     }
 
