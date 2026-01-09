@@ -21,45 +21,6 @@ pipeline {
             }
         }
 
-        stage('Prepare Deployment Folder on Worker') {
-            steps {
-                sshagent(credentials: ["${SSH_CRED}"]) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
-                        rm -rf ${DEPLOY_DIR} &&
-                        mkdir -p ${DEPLOY_DIR} &&
-                        sudo rm -rf /var/www/html/*
-                    '
-                    """
-                }
-            }
-        }
-
-        stage('Copy Website Files to Worker') {
-            steps {
-                sshagent(credentials: ["${SSH_CRED}"]) {
-                    sh """
-                    # Replace ./ with the correct folder if website files are inside a subfolder
-                    scp -o StrictHostKeyChecking=no -r ./* ${WORKER_USER}@${WORKER_IP}:${DEPLOY_DIR}
-                    """
-                }
-            }
-        }
-
-        stage('Deploy to Nginx') {
-            steps {
-                sshagent(credentials: ["${SSH_CRED}"]) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
-                        sudo cp -r ${DEPLOY_DIR}/* /var/www/html/ &&
-                        sudo chown -R www-data:www-data /var/www/html &&
-                        sudo systemctl restart nginx &&
-                        rm -rf ${DEPLOY_DIR}
-                    '
-                    """
-                }
-            }
-        }
     }
 
     post {
