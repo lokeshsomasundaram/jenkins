@@ -18,6 +18,7 @@ pipeline {
                 git branch: "${REPO_BRANCH}",
                     url: "${REPO_URL}",
                     credentialsId: "${GIT_CRED}"
+                echo "hai"
             }
         }
 
