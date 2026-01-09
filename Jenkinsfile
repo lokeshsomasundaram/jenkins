@@ -6,7 +6,7 @@ pipeline {
         WORKER_USER  = "ubuntu"
         DEPLOY_DIR   = "/home/ubuntu/deploy"
         GIT_CRED     = "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"        // Jenkins GitHub PAT credential ID
-        SSH_CRED     = "${env.SSHKEY}"    // Jenkins SSH key credential ID
+        SSH_CRED     = "ubuntu"    // Jenkins SSH key credential ID
         REPO_URL     = "https://github.com/lokeshsomasundaram/jenkins.git" 
         REPO_BRANCH  = "master"
     }
@@ -23,7 +23,7 @@ pipeline {
         
         stage('Prepare Deployment Folder on Worker') {
             steps {
-                sshagent(credentials: [env.SSH_CRED]) {
+                sshagent(credentials: ["${SSH_CRED}"]) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
                         rm -rf ${DEPLOY_DIR} &&
