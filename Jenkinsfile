@@ -25,11 +25,9 @@ pipeline {
             steps {
                 sshagent(credentials: ["ubuntu"]) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP} '
-                        rm -rf ${DEPLOY_DIR} &&
-                        mkdir -p ${DEPLOY_DIR} &&
-                        sudo rm -rf /var/www/html/*
-                    '
+                    ssh -o StrictHostKeyChecking=no ${WORKER_USER}@${WORKER_IP}
+                        
+                    
                     """
                 }
             }
